@@ -65,19 +65,12 @@ class SNMPosterFactory:
 
             self.agents.append({
                 'filename': row[0],
-                'ip': row[1]})
+                'ip': row[1],
+                'community': row[3]})
 
     def start(self):
         for a in self.agents:
-            print "Starting %s on %s." % (a['filename'], a['ip'])
-            if os.uname()[0] == 'Darwin':
-                os.popen("ifconfig lo0 alias %s up" % (a['ip'],))
-            elif os.uname()[0] == 'Linux':
-                os.popen("/sbin/ip addr add %s dev lo" % (a['ip'],))
-            else:
-                print "WARNING: Unable to add loopback alias on this platform."
-
-            faker = SNMPoster(a['ip'], a['filename'])
+            faker = SNMPoster(a['ip'], a['filename'], a['community'])
             faker.run()
 
         daemonize()
@@ -88,8 +81,9 @@ class SNMPoster:
     oidData = {}
     sortedOids = []
 
-    def __init__(self, ip, filename):
+    def __init__(self, ip, filename, community):
         self.ip = ip
+        self.community = community
         self.oids = {}
 
         oid = ''
@@ -181,6 +175,7 @@ class SNMPoster:
         reactor.listenUDP(
             161, agentprotocol.AgentProtocol(
                 snmpVersion='v2c',
+                community=self.community,
                 agent=agent.Agent(
                     dataStore=bisectoidstore.BisectOIDStore(
                         OIDs=self.oids,
