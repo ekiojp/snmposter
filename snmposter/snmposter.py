@@ -66,7 +66,7 @@ class SNMPosterFactory:
             self.agents.append({
                 'filename': row[0],
                 'ip': row[1],
-                'community': row[3]})
+                'community': row[2]})
 
     def start(self):
         for a in self.agents:
